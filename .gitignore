@@ -2,3 +2,5 @@ launch.json
 
 # Dependency directories
 node_modules
+
+*.log
