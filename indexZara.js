@@ -14,7 +14,7 @@ var options = {
     }
 };
 
-var webdriverRun = function(child) {
+var webdriverRun = function(callback, child) {
     var runner = webdriverio.remote(options);
     var starttime = null;
     // var nbProducts = 0;
@@ -127,7 +127,7 @@ var webdriverRun = function(child) {
         return next();
     });
 
-    runner.init()
+    return runner.init()
         .url('http://www.zara.com/it')
         .getTitle().then(function(title) {
             console.log('Main ZARA page title: ' + title);
@@ -143,16 +143,11 @@ var webdriverRun = function(child) {
         })
         .end()
         .then(function() {
-            child.kill();
+            //child.kill();
+            callback ? callback() : null;
         });
 };
 
-database.configureAndConnect((err, model) => {
-    if (err) {
-        console.error('Error connecting to database: ' + err);
-        return;
-    }
-
-    seleniumWrapper.seleniumInstall(webdriverRun);
-});
-
+exports.run = () => {
+    return webdriverRun();
+};

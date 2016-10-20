@@ -1,11 +1,12 @@
 var mongoose = require('mongoose');
-
+var connectionUrl = 'mongodb://localhost/scrape';
+var db = null;
 var productModel = null;
 
 exports.configureAndConnect = (callback) => {
-    mongoose.connect('mongodb://localhost/scrape');
+    mongoose.connect(connectionUrl);
 
-    var db = mongoose.connection;
+    db = mongoose.connection;
 
     db.on('error', function(err) {
         console.error('Error connecting to Mongodb: ' + err);
@@ -14,6 +15,8 @@ exports.configureAndConnect = (callback) => {
     });
 
     db.once('open', function() {
+        console.log('Connected to ' + connectionUrl);
+
         var productSchema = mongoose.Schema({
             id: String,
             description: String,
@@ -29,6 +32,10 @@ exports.configureAndConnect = (callback) => {
 
         callback(null, productModel);
     });
+};
+
+exports.finish = () => {
+    db.close();
 };
 
 exports.update = (shop, product) => {

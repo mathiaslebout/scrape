@@ -14,7 +14,7 @@ var options = {
     }
 };
 
-var webdriverRun = function(child) {
+var webdriverRun = function(callback, child) {
     var runner = webdriverio.remote(options);
     var starttime = null;
     // var nbProducts = 0;
@@ -110,7 +110,7 @@ var webdriverRun = function(child) {
         return next();
     });
 
-    runner.init()
+    return runner.init()
         .url('http://www.promod.it/donna/collezione/index.html')
         .getText('#nb_resultat').then(function(res) {
             console.log(res);
@@ -127,17 +127,11 @@ var webdriverRun = function(child) {
         })
         .end()
         .then(function() {
-            child.kill();
+            //child.kill();
+            callback ? callback() : null;
         });
 };
 
-// connect to database and get data model to use
-database.configureAndConnect((err, model) => {    
-    if (err) {
-        console.error('Error connecting to database: ' + err);
-        return;
-    }
-    
-    seleniumWrapper.seleniumInstall(webdriverRun); 
-});
-
+exports.run = () => {
+    return webdriverRun();
+};

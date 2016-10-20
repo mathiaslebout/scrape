@@ -37,7 +37,10 @@ var seleniumStart = (callback) => {
         }, 
         
         function(err, child) {
-            if (err) return false;
+            if (err) {
+                console.error(err);
+                return false;
+            }
 
             callback(child);
         }
