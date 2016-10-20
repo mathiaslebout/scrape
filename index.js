@@ -139,12 +139,6 @@ var webdriverRun = function(child) {
                         var price =  parseFloat($('.current', $product).last().text().trim());
                         var sizes = $('.tooltip_listetaille', $product).last().text().trim().split(' ');
 
-                        console.log('Id: ' + id);
-                        console.log('Description: ' + description);
-                        console.log('Price: ' + price);
-                        console.log('Sizes: ' + sizes);    
-                        console.log('-----------------------------------------------------------');
-
                         productModel.update({
                             id: id
                         }, {
@@ -161,7 +155,12 @@ var webdriverRun = function(child) {
                                 return;
                             }
 
-                            console.log(raw);
+                            console.log('Id: ' + id);
+                            console.log('Description: ' + description);
+                            console.log('Price: ' + price);
+                            console.log('Sizes: ' + sizes);    
+                            console.log('Mongo result: ' + JSON.stringify(raw));
+                            console.log('-----------------------------------------------------------');
                         })
 
                         // productModel.findOne({'id': id}, function(err, p) {
