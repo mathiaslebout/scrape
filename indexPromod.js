@@ -1,12 +1,13 @@
+// required for jQuery (needs a window)
 var jsdom = require("jsdom").jsdom;
 var doc = jsdom();
 var window = doc.defaultView;
+var $ = require("jquery")(window);
 
 var seleniumWrapper = require('./seleniumWrapper');
 var database = require('./database');
 
-var $ = require("jquery")(window);
-
+// webdriverio wiil run on phantomjs headless browser
 var webdriverio = require('webdriverio');
 var options = {
     desiredCapabilities: {
@@ -14,17 +15,16 @@ var options = {
     }
 };
 
-var webdriverRun = function(callback, child) {
+exports.run = (baseUrl, maxProducts, callback) => {
     var runner = webdriverio.remote(options);
     var starttime = null;
-    // var nbProducts = 0;
+
+    console.log('Promod scraper started on URL ' + baseUrl);
 
     runner.addCommand('getProductDetails', function async (products) {
         var i = 0;
         function next() {
-            if (i < 10) {
-            // if (i < products.length) {
-
+            if (i < maxProducts) {
                 var $product = $( products[i] );
 
                 var id = $('.search_product', $product).attr('id').trim();
@@ -75,9 +75,9 @@ var webdriverRun = function(callback, child) {
     });
 
     runner.addCommand('getProducts', function async (maxProducts, pause, retryMax) {
-        var tmpProducts = 0;
-        var res = null;
-        var retry = 0;
+        let tmpProducts = 0;
+        let res = null;
+        let retry = 0;
         function next() {
             if (tmpProducts < maxProducts 
                     && retry <= retryMax) {
@@ -110,12 +110,18 @@ var webdriverRun = function(callback, child) {
         return next();
     });
 
+    // return webdriverio promise
     return runner.init()
-        .url('http://www.promod.it/donna/collezione/index.html')
-        .getText('#nb_resultat').then(function(res) {
+        .url(baseUrl)
+        .getText('#nb_resultat')
+        .then((res) => {
             console.log(res);
-            var maxProducts = parseInt(res);
-            return runner.getProducts(100, 500, 10)
+            const nbProducts = parseInt(res);
+
+            // compute the maximum number of prpducts to extract from the store
+            maxProducts = maxProducts || nbProducts;
+
+            return runner.getProducts(maxProducts, 500, 10)
                 .then(function(products) {
                     console.log('done, found ' + products.length);
 
@@ -130,8 +136,4 @@ var webdriverRun = function(callback, child) {
             //child.kill();
             callback ? callback() : null;
         });
-};
-
-exports.run = () => {
-    return webdriverRun();
 };

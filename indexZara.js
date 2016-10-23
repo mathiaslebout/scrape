@@ -1,11 +1,10 @@
 var jsdom = require("jsdom").jsdom;
 var doc = jsdom();
 var window = doc.defaultView;
+var $ = require("jquery")(window);
 
 var seleniumWrapper = require('./seleniumWrapper');
 var database = require('./database');
-
-var $ = require("jquery")(window);
 
 var webdriverio = require('webdriverio');
 var options = {
@@ -14,21 +13,21 @@ var options = {
     }
 };
 
-var webdriverRun = function(callback, child) {
+exports.run = (baseUrl, maxProducts, callback) => {
     var runner = webdriverio.remote(options);
     var starttime = null;
-    // var nbProducts = 0;
+    let totalProducts = 0;
 
     // getProductDetails: load product url in the browser and get its details to aggregate to product information got from main page
     runner.addCommand('getProductDetails', function async (category, products) {
         var j = 0;
         var nextProduct = function() {
-            // if (j < products.length) {
-            if (j < 10) {
+            if (j < products.length && (maxProducts ? totalProducts < maxProducts : true)) {
                 // get next product to process
                 var $product = $(products[j]);
                 // increment next product reference
                 j ++;
+                totalProducts ++;
 
                 // get product information and URL on product details
                 var id = $product.attr('id').trim();
@@ -86,17 +85,16 @@ var webdriverRun = function(callback, child) {
 
     // getProducts: get all products displayed in URLs passed as a parameter
     runner.addCommand('getProducts', function async (links) {
-        var i = 0;
+        let i = 0;
 
-        var next = function() {
-            // if (i < links.length) {
-            if (i < 1) {
+        const next = () => {
+            if (i < links.length && (maxProducts ? totalProducts < maxProducts : true)) {
                 // get the next link to process
-                var $link = $( links[i] );
+                const $link = $( links[i] );
 
                 // get the link name = category and the URL
-                var linkName = $link.text().trim();
-                var linkHref = $link.attr('href').trim();
+                const linkName = $link.text().trim();
+                const linkHref = $link.attr('href').trim();
 
                 // increment next link reference
                 i ++;
@@ -107,7 +105,7 @@ var webdriverRun = function(callback, child) {
                     .getTitle().then(function (title) {
                         console.log('Page title: ' + title + ' for category ' + linkName);
                     })
-                    .getHTML('.product').then(function(products) {
+                    .getHTML('.product').then((products) => {
                         console.log('Found ' + products.length + ' products of category ' + linkName + ' in ' + linkHref);
 
                         // now get product details
@@ -128,7 +126,7 @@ var webdriverRun = function(callback, child) {
     });
 
     return runner.init()
-        .url('http://www.zara.com/it')
+        .url(baseUrl)
         .getTitle().then(function(title) {
             console.log('Main ZARA page title: ' + title);
         })
@@ -143,11 +141,6 @@ var webdriverRun = function(callback, child) {
         })
         .end()
         .then(function() {
-            //child.kill();
             callback ? callback() : null;
         });
-};
-
-exports.run = () => {
-    return webdriverRun();
 };
