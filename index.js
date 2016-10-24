@@ -1,3 +1,4 @@
+const logger = require('./logger').logger;
 const promod = require('./indexPromod');
 const zara = require('./indexZara');
 const database = require('./database');
@@ -10,20 +11,27 @@ const maxProductsPerStore = process.argv.length > 2 ? parseInt(process.argv[2]) 
 
 database.configureAndConnect((err, model) => {    
     if (err) {
-        console.error('Error connecting to database: ' + err);
-        return;
+        logger.error('Error connecting to database: ' + err);
+        // exit with code 0
+        process.exit(0);
     }
 
     // first install selenium standalone driver 
-    selenium.seleniumInstall((child) => {
-        // run Promod store scraper
-        zara.run(baseUrlZara, maxProductsPerStore)
+    selenium.seleniumInstall((err, child) => {
+        if (err) {
+            logger.error('Error running selenium scraper: ' + err);
+            // exit with code 0
+            process.exit(0);
+        }
+
+        // run ZARA store scraper
+        zara.run(baseUrlZara, {maxProducts: maxProductsPerStore})
             .then(() => { 
-                // run Zara store scraper
-                return promod.run(baseUrlPromod, maxProductsPerStore);
+                // run PROMOD store scraper
+                return promod.run(baseUrlPromod, {maxProducts: maxProductsPerStore} );
             })
             .then(() => {
-                console.log('Finished all stores');
+                logger.info('Finished all stores');
                 // kill selenium server
                 child.kill();
                 // close connection to database

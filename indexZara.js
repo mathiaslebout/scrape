@@ -1,19 +1,20 @@
-var jsdom = require("jsdom").jsdom;
-var doc = jsdom();
-var window = doc.defaultView;
-var $ = require("jquery")(window);
+const logger = require('./logger').logger;
+const jsdom = require("jsdom").jsdom;
+const doc = jsdom();
+const window = doc.defaultView;
+const $ = require("jquery")(window);
 
-var seleniumWrapper = require('./seleniumWrapper');
-var database = require('./database');
+const seleniumWrapper = require('./seleniumWrapper');
+const database = require('./database');
 
-var webdriverio = require('webdriverio');
-var options = {
+const webdriverio = require('webdriverio');
+const options = {
     desiredCapabilities: {
         browserName: 'phantomjs'
     }
 };
 
-exports.run = (baseUrl, maxProducts, callback) => {
+exports.run = (baseUrl, {maxProducts, callback} = {}) => {
     var runner = webdriverio.remote(options);
     var starttime = null;
     let totalProducts = 0;
@@ -40,7 +41,7 @@ exports.run = (baseUrl, maxProducts, callback) => {
                 // browse to the product page and get the product card containing remaining information
                 return runner.url(productHref)
                     .getTitle().then(function(productTitle) {
-                        console.log('Product page title: ' + productTitle);
+                        logger.info('Product page title: ' + productTitle);
                     })
                     .getHTML('.product-card').then(function (card) {
                         var $card = $(card);
@@ -71,10 +72,10 @@ exports.run = (baseUrl, maxProducts, callback) => {
                         });
                     })
                     .catch(function(err) {
-                        console.log('Error: ' + err);
+                        logger.info('Error: ' + err);
                     })
                     .then(function() {
-                        console.log('-----------------------------------------------------------');
+                        logger.info('-----------------------------------------------------------');
                     })
                     .then(nextProduct);
             }   
@@ -103,20 +104,20 @@ exports.run = (baseUrl, maxProducts, callback) => {
                 return runner.url(linkHref)
                     .pause(200) // wait since prices are loaded in an AJAX call after the page is loaded
                     .getTitle().then(function (title) {
-                        console.log('Page title: ' + title + ' for category ' + linkName);
+                        logger.info('Page title: ' + title + ' for category ' + linkName);
                     })
                     .getHTML('.product').then((products) => {
-                        console.log('Found ' + products.length + ' products of category ' + linkName + ' in ' + linkHref);
+                        logger.info('Found ' + products.length + ' products of category ' + linkName + ' in ' + linkHref);
 
                         // now get product details
                         return runner.getProductDetails(linkName, products);
 
                     }).catch(function(err) {
-                        console.log('ERROR: ' + err + ' for link ' + linkHref);
+                        logger.info('ERROR: ' + err + ' for link ' + linkHref);
                     })
                     .then(function() {
-                        console.log('Processed products for category ' + linkName);
-                        console.log('-----------------------------------------------------------');
+                        logger.info('Processed products for category ' + linkName);
+                        logger.info('-----------------------------------------------------------');
                     })
                     .then(next);
             }
@@ -128,16 +129,16 @@ exports.run = (baseUrl, maxProducts, callback) => {
     return runner.init()
         .url(baseUrl)
         .getTitle().then(function(title) {
-            console.log('Main ZARA page title: ' + title);
+            logger.info('Main ZARA page title: ' + title);
         })
         // get all links for 'DONNA' outfits         
         .getHTML('//LI[A="DONNA"]/UL/LI/A').then(function(links) {
-            console.log('Got ' + links.length + ' links');
+            logger.info('Got ' + links.length + ' links');
             // now get products 
             return runner.getProducts(links);
         })
         .then(function() {
-            console.log('Processed all links for DONNA');
+            logger.info('Processed all links for DONNA');
         })
         .end()
         .then(function() {

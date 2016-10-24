@@ -1,4 +1,5 @@
-var selenium = require('selenium-standalone');
+const logger = require('./logger').logger;
+const selenium = require('selenium-standalone');
 
 exports.seleniumInstall = (callback) => {
     selenium.install({
@@ -11,38 +12,40 @@ exports.seleniumInstall = (callback) => {
                     baseURL: 'https://selenium-release.storage.googleapis.com/'
                 }
             },
-            logger: function(message) {
-                console.log('selenium: ' + message);
+            logger: (message) => {
+                logger.info('selenium: ' + message);
             },
-            progressCb: function(totalLength, progressLength, chunkLength) {
+            // progressCb: function(totalLength, progressLength, chunkLength) {
 
+            // }
+        }, (err) => {
+            if (err) {
+                logger.error('Error installing selenium standalone driver: ' + err);
+                callback ? callback(err) : null;
+                return false;
             }
-        }, function(err) {
-            if (err) return false;
+
             seleniumStart(callback);
         }
     );
 }
 
-var seleniumStart = (callback) => {
+const seleniumStart = (callback) => {
     selenium.start({
         drivers: {
                 phantomjs: {
                     baseURL: 'https://selenium-release.storage.googleapis.com/'
                 }
             },
-            logger: function(message) {
-                console.log(message);
-            }
         }, 
-        
-        function(err, child) {
+        (err, child) => {
             if (err) {
-                console.error(err);
+                logger.error(err);
+                callback ? callback(err, null) : null;
                 return false;
             }
 
-            callback(child);
+            callback ? callback(null, child) : null;
         }
     );
 };

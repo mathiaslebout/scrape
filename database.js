@@ -1,22 +1,27 @@
-var mongoose = require('mongoose');
-var connectionUrl = 'mongodb://localhost/scrape';
-var db = null;
-var productModel = null;
+const logger = require('./logger').logger;
+const mongoose = require('mongoose');
+const connectionUrl = 'mongodb://localhost/scrape';
+
+let db = null;
+let productModel = null;
 
 exports.configureAndConnect = (callback) => {
-    mongoose.connect(connectionUrl);
+    logger.info('database: Configuring and connecting to ' + connectionUrl);
 
+    // create Mongoose connection
+    mongoose.connect(connectionUrl);
     db = mongoose.connection;
 
-    db.on('error', function(err) {
-        console.error('Error connecting to Mongodb: ' + err);
+    db.on('error', (err) => {
+        logger.error('database: Error connecting to Mongodb: ' + err);
 
-        callback(err, null);
+        callback ? callback(err, null) : null;
     });
 
-    db.once('open', function() {
-        console.log('Connected to ' + connectionUrl);
+    db.once('open', () => {
+        logger.info('database: Connected to ' + connectionUrl);
 
+        // create schemas
         var productSchema = mongoose.Schema({
             id: String,
             description: String,
@@ -28,9 +33,11 @@ exports.configureAndConnect = (callback) => {
             shop: String
         });    
 
+        // create models from schemas
         productModel = mongoose.model('Product', productSchema);
 
-        callback(null, productModel);
+        // end of 
+        callback ? callback(null, productModel) : null;
     });
 };
 
@@ -39,7 +46,6 @@ exports.finish = () => {
 };
 
 exports.update = (shop, product) => {
-
     productModel.update({
         id: product.id
     }, {
@@ -55,18 +61,18 @@ exports.update = (shop, product) => {
         upsert: true
     }, function(err, raw) {
         if (err) {
-            console.log('Error upserting product ' + product.id + ': ' + err);
+            logger.info('database: Error upserting product ' + product.id + ': ' + err);
             return;
         }
 
-        console.log('Category: ' + product.category);
-        console.log('Id: ' + product.id);
-        console.log('Description: ' + product.description);
-        console.log('Price: ' + product.price);
-        console.log('Product href: ' + product.href);
-        console.log('Sizes: ' + product.sizes);    
-        console.log('Colors: ' + product.colors);
-        console.log('Mongo result: ' + JSON.stringify(raw));
-        console.log('-----------------------------------------------------------');
+        logger.info('Category: ' + product.category);
+        logger.info('Id: ' + product.id);
+        logger.info('Description: ' + product.description);
+        logger.info('Price: ' + product.price);
+        logger.info('Product href: ' + product.href);
+        logger.info('Sizes: ' + product.sizes);    
+        logger.info('Colors: ' + product.colors);
+        logger.info('Mongo result: ' + JSON.stringify(raw));
+        logger.info('-----------------------------------------------------------');
     });
 };

@@ -1,25 +1,26 @@
 // required for jQuery (needs a window)
-var jsdom = require("jsdom").jsdom;
-var doc = jsdom();
-var window = doc.defaultView;
-var $ = require("jquery")(window);
+const logger = require('./logger').logger;
+const jsdom = require("jsdom").jsdom;
+const doc = jsdom();
+const window = doc.defaultView;
+const $ = require("jquery")(window);
 
-var seleniumWrapper = require('./seleniumWrapper');
-var database = require('./database');
+const seleniumWrapper = require('./seleniumWrapper');
+const database = require('./database');
 
 // webdriverio wiil run on phantomjs headless browser
-var webdriverio = require('webdriverio');
-var options = {
+const webdriverio = require('webdriverio');
+const options = {
     desiredCapabilities: {
         browserName: 'phantomjs'
     }
 };
 
-exports.run = (baseUrl, maxProducts, callback) => {
+exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
     var runner = webdriverio.remote(options);
     var starttime = null;
 
-    console.log('Promod scraper started on URL ' + baseUrl);
+    logger.info('Promod scraper started on URL ' + baseUrl);
 
     runner.addCommand('getProductDetails', function async (products) {
         var i = 0;
@@ -37,7 +38,7 @@ exports.run = (baseUrl, maxProducts, callback) => {
 
                 return runner.url(productHref)
                     .getTitle().then(function (title) {
-                        console.log(title);
+                        logger.info(title);
                     })
                     .getHTML('.fiche_produit').then(function (card) {
                         var $card = $(card);
@@ -96,7 +97,7 @@ exports.run = (baseUrl, maxProducts, callback) => {
                             retry = 0;
                         }
                         tmpProducts = res.length;
-                        console.log('Found ' + tmpProducts + ' on page, retry = ' + retry);
+                        logger.info('Found ' + tmpProducts + ' on page, retry = ' + retry);
                     })
                     .then(next);
 
@@ -115,7 +116,7 @@ exports.run = (baseUrl, maxProducts, callback) => {
         .url(baseUrl)
         .getText('#nb_resultat')
         .then((res) => {
-            console.log(res);
+            logger.info(res);
             const nbProducts = parseInt(res);
 
             // compute the maximum number of prpducts to extract from the store
@@ -123,12 +124,12 @@ exports.run = (baseUrl, maxProducts, callback) => {
 
             return runner.getProducts(maxProducts, 500, 10)
                 .then(function(products) {
-                    console.log('done, found ' + products.length);
+                    logger.info('done, found ' + products.length);
 
                     return runner.getProductDetails(products);
 
                 }, function(err) {
-                    console.log('error: ' + err);
+                    logger.info('error: ' + err);
                 });
         })
         .end()
