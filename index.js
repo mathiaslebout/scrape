@@ -1,11 +1,15 @@
 const logger = require('./logger').logger;
+
 const promod = require('./indexPromod');
 const zara = require('./indexZara');
+const mango = require('./indexMango');
+
 const database = require('./database');
 const selenium = require('./seleniumWrapper');
 
 const baseUrlPromod = 'http://www.promod.it/donna/collezione/index.html';
 const baseUrlZara = 'http://www.zara.com/it';
+const baseUrlMango = 'http://shop.mango.com/IT/donna';
 
 const maxProductsPerStore = process.argv.length > 2 ? parseInt(process.argv[2]) : null;
 
@@ -28,7 +32,10 @@ database.configureAndConnect((err, model) => {
         zara.run(baseUrlZara, {maxProducts: maxProductsPerStore})
             .then(() => { 
                 // run PROMOD store scraper
-                return promod.run(baseUrlPromod, {maxProducts: maxProductsPerStore} );
+                return promod.run(baseUrlPromod, {maxProducts: maxProductsPerStore} )
+                    .then(() => {
+                        return mango.run(baseUrlMango, {maxProducts: maxProductsPerStore});
+                    });
             })
             .then(() => {
                 logger.info('Finished all stores');
