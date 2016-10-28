@@ -23,14 +23,15 @@ exports.configureAndConnect = (callback) => {
 
         // create schemas
         var productSchema = mongoose.Schema({
-            id: String,
-            description: String,
-            category: String,
-            href: String,
-            price: Number,
-            sizes: Array,
-            colors: Array,
-            shop: String
+            id: String,             // unique identifier in the shop
+            description: String,    // short description of the product
+            category: String,       // product category
+            href: String,           // product details page reference
+            price: Number,          // price (in euro)
+            sizes: Array,           // array of (available) sizes
+            colors: Array,          // array of (available) colors
+            shop: String,           // name of the shop (id + shop) is unique identifer
+            updateTs: Number,       // last update timestamp
         });    
 
         // create models from schemas
@@ -56,7 +57,8 @@ exports.update = (shop, product) => {
         href: product.href,
         price: product.price,
         sizes: product.sizes,
-        colors: product.colors
+        colors: product.colors,
+        updateTs: Date.now()
     }, {
         upsert: true
     }, function(err, raw) {
