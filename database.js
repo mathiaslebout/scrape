@@ -44,9 +44,11 @@ exports.configureAndConnect = (callback) => {
 
 exports.finish = () => {
     db.close();
+    logger.debug('database: Closed database connection');
 };
 
-exports.update = (shop, product) => {
+exports.update = (shop = null, product = {}) => {
+    logger.info('database: Upserting product ' + product.id + ' for shop ' + shop);
     productModel.update({
         id: product.id
     }, {
@@ -67,14 +69,14 @@ exports.update = (shop, product) => {
             return;
         }
 
-        logger.info('Category: ' + product.category);
-        logger.info('Id: ' + product.id);
-        logger.info('Description: ' + product.description);
-        logger.info('Price: ' + product.price);
-        logger.info('Product href: ' + product.href);
-        logger.info('Sizes: ' + product.sizes);    
-        logger.info('Colors: ' + product.colors);
-        logger.info('Mongo result: ' + JSON.stringify(raw));
-        logger.info('-----------------------------------------------------------');
+        logger.info('database: Category: ' + product.category);
+        logger.info('database: Id: ' + product.id);
+        logger.info('database: Description: ' + product.description);
+        logger.info('database: Price: ' + product.price);
+        logger.info('database: Product href: ' + product.href);
+        logger.info('database: Sizes: ' + product.sizes);    
+        logger.info('database: Colors: ' + product.colors);
+        logger.info('database: Mongo result: ' + JSON.stringify(raw));
+        logger.info('database: -----------------------------------------------------------');
     });
 };
