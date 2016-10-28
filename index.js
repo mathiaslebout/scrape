@@ -7,11 +7,62 @@ const mango = require('./indexMango');
 const database = require('./database');
 const selenium = require('./seleniumWrapper');
 
-const baseUrlPromod = 'http://www.promod.it/donna/collezione/index.html';
-const baseUrlZara = 'http://www.zara.com/it';
-const baseUrlMango = 'http://shop.mango.com/IT/donna';
+let stores = null;
+let maxProductsPerStore = null;
 
-const maxProductsPerStore = process.argv.length > 2 ? parseInt(process.argv[2]) : null;
+if (process.argv.length > 2) {
+    process.argv.forEach((argv) => {
+        const elts = argv.split('=');
+        if (elts.length == 2) {
+            const eltName = elts[0];
+            const eltVal = elts[1];
+
+            switch (eltName) {
+            case 'stores':
+                stores = require(eltVal);
+                break;
+
+            case 'maxProducts':
+                maxProductsPerStore = parseInt(eltVal);
+                break;
+            }
+        }
+    })
+} 
+
+const processStores = (stores = []) => {
+    let i = 0;
+    const next = () => {
+
+        if (i < stores.length) {
+            const store = stores[i];
+            const name = store.name || 'undefined';
+            const url = store.baseUrl;
+            const maxProducts = store.maxProducts || maxProductsPerStore;
+            const processor = store.processor;
+
+            i ++;
+
+            if (!url || !processor) {
+                logger.error('Missing baseUrl or processor on store ' + name + '!');
+                return next();
+
+            } else {
+                logger.info('Processing store ' + name + ' with base URL ' + url);
+                logger.debug('Processor: ' + processor);
+                logger.debug('Maximum products to be scraped: ' + maxProducts);
+                const p = require(processor);
+                if (!p || !p.run) {
+                    logger.error('No processor found or missing "run" exported function on it!');
+                    return next();
+                }
+
+                return p.run(url, {maxProducts}).then(next);
+            }
+        }
+    }
+    return next();
+}
 
 database.configureAndConnect((err, model) => {    
     if (err) {
@@ -28,15 +79,7 @@ database.configureAndConnect((err, model) => {
             process.exit(0);
         }
 
-        // run ZARA store scraper
-        zara.run(baseUrlZara, {maxProducts: maxProductsPerStore})
-            .then(() => { 
-                // run PROMOD store scraper
-                return promod.run(baseUrlPromod, {maxProducts: maxProductsPerStore} )
-                    .then(() => {
-                        return mango.run(baseUrlMango, {maxProducts: maxProductsPerStore});
-                    });
-            })
+        processStores(stores)
             .then(() => {
                 logger.info('Finished all stores');
                 // kill selenium server
