@@ -1,0 +1,6 @@
+{
+    "log": {
+        "file": "fullpathtoyourlogfile.log",
+        "level": "info"
+    }
+}

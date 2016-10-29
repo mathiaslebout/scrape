@@ -4,3 +4,5 @@ launch.json
 node_modules
 
 *.log
+
+conf/config.json

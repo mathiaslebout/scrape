@@ -1,4 +1,5 @@
 const winston = require('winston');
+const config = require('./conf/config.json');
 
 exports.logger = new (winston.Logger) ({
     transports: [
@@ -6,8 +7,8 @@ exports.logger = new (winston.Logger) ({
             level: 'debug' 
         }),
         new (winston.transports.File) ({
-            filename: 'scraper.log',
-            level: 'info'
+            filename: config.log.file,
+            level: config.log.level
         })
     ]
 });
