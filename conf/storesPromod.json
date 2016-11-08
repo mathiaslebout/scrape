@@ -1,0 +1,5 @@
+[{
+    "name": "Promod",
+    "baseUrl": "http://www.promod.it/donna/collezione/index.html",
+    "processor": "./indexPromod"        
+}]

@@ -17,22 +17,24 @@ const options = {
 };
 
 exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
-    var runner = webdriverio.remote(options);
-    var starttime = null;
+    const runner = webdriverio.remote(options);
+    const starttime = null;
 
     logger.info('Promod scraper started on URL ' + baseUrl);
 
     runner.addCommand('getProductDetails', function async (products) {
-        var i = 0;
-        function next() {
+        let i = 0;
+        const next = () => {
             if (i < maxProducts) {
-                var $product = $( products[i] );
+                const $product = $( products[i] );
 
-                var id = $('.search_product', $product).attr('id').trim();
-                var description = $('.descrip', $product).contents().first().text().trim();
-                var price =  parseFloat($('.current', $product).last().text().trim());
-                var sizes = $('.tooltip_listetaille', $product).last().text().trim().split(' ');
-                var productHref = $('.colorisdispo a', $product).first().attr('href').trim();
+                const id = $('.search_product', $product).attr('id').trim();
+                //const description = $('.descrip', $product).contents().first().text().trim();
+                const description = $('.descrip a', $product).text().trim();
+                const price =  parseFloat($('.current', $product).last().text().trim());
+                const sizes = $('.tooltip_listetaille', $product).last().text().trim().split(' ');
+                const productHref = $('.colorisdispo a', $product).first().attr('href').trim();
+                // const imgHref = $('.visuel img', $product).attr('src').trim();
 
                 i ++;
 
@@ -40,28 +42,37 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                     .getTitle().then(function (title) {
                         logger.info(title);
                     })
-                    .getHTML('.fiche_produit').then(function (card) {
-                        var $card = $(card);
+                    .getHTML('#global').then(function (card) {
+                        const $card = $(card);
 
-                        var name = $('#titre .item', $card).text().trim();
-                        var category = name.split(' ')[0];
+                        const imgHref = $('.img_produit', $card).attr('src').trim()
 
-                        var currentColor = $('#description [itemprop="color"]', $card).text().trim();     
+                        const name = $('#titre .item', $card).text().trim();
+                        // const category = name.split(' ')[0];
+                        let category = null;
+                        
+                        const navigation = $('#ariane_navig a', $card);
+                        if (navigation.length >= 2) {
+                            category = $(navigation[navigation.length - 2]).text().trim();
+                        }
 
-                        var colors = [ currentColor ];
+                        const currentColor = $('#description [itemprop="color"]', $card).text().trim();     
+
+                        let colors = [ currentColor ];
                         $('#couleurs img', $card).each(function() {
-                            var colorWithName = $(this).attr('alt').trim();
+                            const colorWithName = $(this).attr('alt').trim();
                             colors.push( colorWithName.substring(name.length).trim() );
                         });
 
                         database.update('Promod', {
-                            id: id,
-                            description: description,
-                            category: category,
+                            id,
+                            description,
+                            category,
                             href: productHref,
-                            price: price,
-                            sizes: sizes,
-                            colors: colors
+                            price,
+                            sizes,
+                            colors,
+                            imgHref
                         });
 
                     })

@@ -27,6 +27,7 @@ exports.configureAndConnect = (callback) => {
             description: String,    // short description of the product
             category: String,       // product category
             href: String,           // product details page reference
+            imgHref: String,        // product image reference
             price: Number,          // price (in euro)
             sizes: Array,           // array of (available) sizes
             colors: Array,          // array of (available) colors
@@ -57,6 +58,7 @@ exports.update = (shop = null, product = {}) => {
         description: product.description,
         category: product.category,
         href: product.href,
+        imgHref: product.imgHref,
         price: product.price,
         sizes: product.sizes,
         colors: product.colors,
@@ -74,6 +76,7 @@ exports.update = (shop = null, product = {}) => {
         logger.info('database: Description: ' + product.description);
         logger.info('database: Price: ' + product.price);
         logger.info('database: Product href: ' + product.href);
+        logger.info('database: Image href: ' + product.imgHref);
         logger.info('database: Sizes: ' + product.sizes);    
         logger.info('database: Colors: ' + product.colors);
         logger.info('database: Mongo result: ' + JSON.stringify(raw));

@@ -1,0 +1,5 @@
+[{
+    "name": "Mango",
+    "baseUrl": "http://shop.mango.com/IT/donna",
+    "processor": "./indexMango"
+}]

@@ -15,14 +15,14 @@ const options = {
 };
 
 exports.run = (baseUrl, {maxProducts, callback} = {}) => {
-    var runner = webdriverio.remote(options);
-    var starttime = null;
+    const runner = webdriverio.remote(options);
+    let starttime = null;
     let totalProducts = 0;
 
     // getProductDetails: load product url in the browser and get its details to aggregate to product information got from main page
     runner.addCommand('getProductDetails', function async (category, products) {
-        var j = 0;
-        var nextProduct = function() {
+        let j = 0;
+        const nextProduct = function() {
             if (j < products.length && (maxProducts ? totalProducts < maxProducts : true)) {
                 // get next product to process
                 var $product = $(products[j]);
@@ -31,29 +31,33 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                 totalProducts ++;
 
                 // get product information and URL on product details
-                var id = $product.attr('id').trim();
-                var description = $('.name', $product).text().trim();
-                var price = parseFloat($('.price', $product).text().replace(',', '.'));
-                var productHref = 'http:' + $('.item', $product).attr('href').trim();
+                const id = $product.attr('id').trim();
+                const description = $('.name', $product).text().trim();
+                const price = parseFloat($('.price', $product).text().replace(',', '.'));
+                const productHref = 'http:' + $('.item', $product).attr('href').trim();
 
-                // NB: sizes and colors are on page product detail
+                // NB: image, sizes and colors are on page product detail
 
                 // browse to the product page and get the product card containing remaining information
                 return runner.url(productHref)
                     .getTitle().then(function(productTitle) {
                         logger.info('Product page title: ' + productTitle);
                     })
+                    .pause(500)
                     .getHTML('.product-card').then(function (card) {
-                        var $card = $(card);
+                        const $card = $(card);
+
+                        // get image href
+                        const imgHref = 'http:' + $('.image-wrap ._seoImg img._img-zoom', $card).attr('src').trim();
 
                         // get sizes
-                        var sizes = [];
+                        let sizes = [];
                         $('.size-name', $card).each(function() {
                             sizes.push($(this).text().trim());
                         });
 
                         // get colors
-                        var colors = [];
+                        let colors = [];
                         $('.color-description', $card).each(function() {
                             colors.push($(this).text().trim());
                         });
@@ -66,6 +70,7 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                             category: category,
                             description: description,
                             price: price,
+                            imgHref: imgHref,
                             href: productHref,
                             sizes: sizes,
                             colors: colors

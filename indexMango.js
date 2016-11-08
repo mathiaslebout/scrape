@@ -151,6 +151,7 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                 const description = $('.productList__name', $p).text().trim();
                 const price = parseFloat($('.productList__price', $p).text().split(' ')[1].replace(',', '.'));
                 const productHref = $('.productListLink', $p).attr('href').trim();
+                // const imgHref = $('.productListImg', $p).attr('src').trim();
 
                 // NB: sizes and colors are on page product detail
 
@@ -159,11 +160,13 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                     .getTitle().then((productTitle) => {
                         logger.info('Product page title: ' + productTitle);
                     })
-                    .getHTML('.datos_ficha_producto').then((card) => {
-                        var $card = $(card);
+                    .getHTML('.main-contentContainer').then((card) => {
+                        const $card = $(card);
+
+                        const imgHref = $('.ficha_foto', $card).attr('src').trim();
 
                         // get sizes
-                        var sizes = [];
+                        let sizes = [];
                         $('.selecciona_tu_talla option[name=true]', $card).each(function() {
                             const size = $(this).text();
                             if (size) {
@@ -172,7 +175,7 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                         });
 
                         // get colors
-                        var colors = [];
+                        let colors = [];
                         $('.productColors__img', $card).each(function() {
                             const color = $(this).attr('title');
                             if (color) {
@@ -181,13 +184,14 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                         });
 
                         database.update('Mango', {
-                            id: id,
-                            category: category,
-                            description: description,
-                            price: price,
+                            id,
+                            category,
+                            description,
+                            price,
                             href: productHref,
-                            sizes: sizes,
-                            colors: colors
+                            sizes,
+                            colors,
+                            imgHref
                         });
                     })
                     .catch((err) => {
