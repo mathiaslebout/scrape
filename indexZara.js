@@ -36,6 +36,8 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                 const price = parseFloat($('.price', $product).text().replace(',', '.'));
                 const productHref = 'http:' + $('.item', $product).attr('href').trim();
 
+                let cat = category
+
                 // NB: image, sizes and colors are on page product detail
 
                 // browse to the product page and get the product card containing remaining information
@@ -105,26 +107,30 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                 // increment next link reference
                 i ++;
 
-                // browse to the category page and get the list of products in the page
-                return runner.url(linkHref)
-                    .pause(200) // wait since prices are loaded in an AJAX call after the page is loaded
-                    .getTitle().then(function (title) {
-                        logger.info('Page title: ' + title + ' for category ' + linkName);
-                    })
-                    .getHTML('.product').then((products) => {
-                        logger.info('Found ' + products.length + ' products of category ' + linkName + ' in ' + linkHref);
+                if (linkName != 'NUOVI ARRIVI') { 
 
-                        // now get product details
-                        return runner.getProductDetails(linkName, products);
+                    // browse to the category page and get the list of products in the page
+                    return runner.url(linkHref)
+                        .pause(200) // wait since prices are loaded in an AJAX call after the page is loaded
+                        .getTitle().then(function (title) {
+                            logger.info('Page title: ' + title + ' for category ' + linkName);
+                        })
+                        .getHTML('.product').then((products) => {
+                            logger.info('Found ' + products.length + ' products of category ' + linkName + ' in ' + linkHref);
 
-                    }).catch(function(err) {
-                        logger.info('ERROR: ' + err + ' for link ' + linkHref);
-                    })
-                    .then(function() {
-                        logger.info('Processed products for category ' + linkName);
-                        logger.info('-----------------------------------------------------------');
-                    })
-                    .then(next);
+                            // now get product details
+                            return runner.getProductDetails(linkName, products);
+
+                        }).catch(function(err) {
+                            logger.info('ERROR: ' + err + ' for link ' + linkHref);
+                        })
+                        .then(function() {
+                            logger.info('Processed products for category ' + linkName);
+                            logger.info('-----------------------------------------------------------');
+                        })
+                        .then(next);
+
+                } else return next()
             }
         };
         
