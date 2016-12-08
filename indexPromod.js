@@ -4,6 +4,7 @@ const jsdom = require("jsdom").jsdom;
 const doc = jsdom();
 const window = doc.defaultView;
 const $ = require("jquery")(window);
+const vibrant = require('./vibrant')
 
 const seleniumWrapper = require('./seleniumWrapper');
 const database = require('./database');
@@ -64,16 +65,23 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                             colors.push( colorWithName.substring(name.length).trim() );
                         });
 
-                        database.update('Promod', {
-                            id,
-                            description,
-                            category,
-                            href: productHref,
-                            price,
-                            sizes,
-                            colors,
-                            imgHref
-                        });
+                        vibrant.getSwatches(imgHref, (res, palette) => {
+                            if (!res) {
+                                database.update('Promod', {
+                                    id,
+                                    description,
+                                    category,
+                                    href: productHref,
+                                    price,
+                                    sizes,
+                                    colors,
+                                    imgHref,
+                                    palette
+                                });
+
+                            } else logger.error(res)
+                        })
+
 
                     })
                     .then(next);
@@ -94,7 +102,7 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
             if (tmpProducts < maxProducts 
                     && retry <= retryMax) {
                 // scroll to the footer
-                return runner.scroll('footer')
+                return runner.scroll('footer.clear')
                     // then wait for loading
                     .pause(pause)
                     // the  check the total number of products loaded on the page
@@ -108,7 +116,7 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                             retry = 0;
                         }
                         tmpProducts = res.length;
-                        logger.info('Found ' + tmpProducts + ' on page, retry = ' + retry);
+                        logger.info(`Found ${tmpProducts} on page, retry = ${retry}`)
                     })
                     .then(next);
 

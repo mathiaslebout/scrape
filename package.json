@@ -6,7 +6,9 @@
     "jquery": "^3.1.1",
     "jsdom": "^9.6.0",
     "mongoose": "^4.6.3",
+    "node-vibrant": "^2.1.2",
     "selenium-standalone": "^5.7.2",
+    "tinycolor2": "^1.4.1",
     "winston": "^2.2.0"
   },
   "devDependencies": {

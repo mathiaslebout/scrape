@@ -4,12 +4,13 @@ const jsdom = require("jsdom").jsdom;
 const doc = jsdom();
 const window = doc.defaultView;
 const $ = require("jquery")(window);
+const vibrant = require('./vibrant')
 
-const seleniumWrapper = require('./seleniumWrapper');
-const database = require('./database');
+const seleniumWrapper = require('./seleniumWrapper')
+const database = require('./database')
 
 // webdriverio wiil run on phantomjs headless browser
-const webdriverio = require('webdriverio');
+const webdriverio = require('webdriverio')
 const options = {
     desiredCapabilities: {
         browserName: 'phantomjs'
@@ -183,16 +184,22 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                             }
                         });
 
-                        database.update('Mango', {
-                            id,
-                            category,
-                            description,
-                            price,
-                            href: productHref,
-                            sizes,
-                            colors,
-                            imgHref
-                        });
+                        vibrant.getSwatches(imgHref, (res, palette) => {
+                            if (!res) {
+                                database.update('Mango', {
+                                    id,
+                                    category,
+                                    description,
+                                    price,
+                                    href: productHref,
+                                    sizes,
+                                    colors,
+                                    imgHref,
+                                    palette
+                                });
+                                
+                            } else logger.error(res)
+                        })
                     })
                     .catch((err) => {
                         logger.info('Error: ' + err);

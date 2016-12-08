@@ -32,6 +32,7 @@ exports.configureAndConnect = (callback) => {
             sizes: Array,           // array of (available) sizes
             colors: Array,          // array of (available) colors
             shop: String,           // name of the shop (id + shop) is unique identifer
+            palette: Object,        // 
             updateTs: Number,       // last update timestamp
         });    
 
@@ -62,6 +63,7 @@ exports.update = (shop = null, product = {}) => {
         price: product.price,
         sizes: product.sizes,
         colors: product.colors,
+        palette: product.palette,
         updateTs: Date.now()
     }, {
         upsert: true
@@ -71,15 +73,16 @@ exports.update = (shop = null, product = {}) => {
             return;
         }
 
-        logger.info('database: Category: ' + product.category);
-        logger.info('database: Id: ' + product.id);
-        logger.info('database: Description: ' + product.description);
-        logger.info('database: Price: ' + product.price);
-        logger.info('database: Product href: ' + product.href);
-        logger.info('database: Image href: ' + product.imgHref);
-        logger.info('database: Sizes: ' + product.sizes);    
-        logger.info('database: Colors: ' + product.colors);
-        logger.info('database: Mongo result: ' + JSON.stringify(raw));
+        logger.info('database: Category: ' + product.category)
+        logger.info('database: Id: ' + product.id)
+        logger.info('database: Description: ' + product.description)
+        logger.info('database: Price: ' + product.price)
+        logger.info('database: Product href: ' + product.href)
+        logger.info('database: Image href: ' + product.imgHref)
+        logger.info('database: Sizes: ' + product.sizes)
+        logger.info('database: Colors: ' + product.colors)
+        logger.info('database: Palette: ' + JSON.stringify(product.palette, null, '\t'))
+        logger.info('database: Mongo result: ' + JSON.stringify(raw, null, '\t'))
         logger.info('database: -----------------------------------------------------------');
     });
 };

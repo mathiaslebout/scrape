@@ -1,8 +1,13 @@
 const logger = require('./logger').logger;
 const jsdom = require("jsdom").jsdom;
-const doc = jsdom();
-const window = doc.defaultView;
+document = jsdom();
+tracking = {}
+window = document.defaultView
+navigator = window.navigator 
 const $ = require("jquery")(window);
+const vibrant = require('./vibrant')
+// const tr = require('tracking')
+const tinycolor = require('tinycolor2')
 
 const seleniumWrapper = require('./seleniumWrapper');
 const database = require('./database');
@@ -13,6 +18,17 @@ const options = {
         browserName: 'phantomjs'
     }
 };
+
+// registerColor = (name, rgbColor) => { 
+//     tracking.ColorTracker.registerColor(name, (r, g, b) => {
+//         if (((r - 10 <= rgbColor.r) && (rgbColor.r <= r + 10)) 
+//             && ((g - 10 <= rgbColor.g) && (rgbColor.g <= g + 10)) 
+//             && ((b - 10 <= rgbColor.b) && (rgbColor.b <= b + 10))) {
+//             return true;
+//         }
+//         return false;
+//     });
+// }
 
 exports.run = (baseUrl, {maxProducts, callback} = {}) => {
     const runner = webdriverio.remote(options);
@@ -67,16 +83,42 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                             colors.push($('._colorName', $card).text().trim());
                         }
 
-                        database.update('Zara', {
-                            id: id,
-                            category: category,
-                            description: description,
-                            price: price,
-                            imgHref: imgHref,
-                            href: productHref,
-                            sizes: sizes,
-                            colors: colors
-                        });
+                        vibrant.getSwatches(imgHref, (res, palette) => {
+                            if (!res) {
+                                const regularVibrantRgb = tinycolor( palette.regularVibrant ).toRgb()
+
+                                // registerColor(palette.regularVibrant, regularVibrantRgb)
+
+                                // const colors = new tracking.ColorTracker([palette.regularVibrant]);
+                                // colors.on('track', function(event) {
+                                //     if (event.data.length === 0) {
+                                //         // No colors were detected in this frame.
+                                //     } else {
+                                //         event.data.forEach(function(rect) {
+                                //             // rect.x, rect.y, rect.height, rect.width, rect.color
+                                //             // window.plot(rect.x, rect.y, rect.width, rect.height, rect.color);
+                                //         });
+                                //     }
+                                // });
+
+                                // const $img = $(`<img src='${imgHref}' style='width:800px; height:800px;'/>`)
+
+                                // tracking.track($img[0], colors);        
+
+                                database.update('Zara', {
+                                    id,
+                                    category,
+                                    description,
+                                    price,
+                                    imgHref,
+                                    href: productHref,
+                                    sizes,
+                                    colors,
+                                    palette
+                                })
+
+                            } else logger.error(res)
+                        })
                     })
                     .catch(function(err) {
                         logger.info('Error: ' + err);
@@ -102,7 +144,10 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
 
                 // get the link name = category and the URL
                 const linkName = $link.text().trim();
-                const linkHref = $link.attr('href').trim();
+                let linkHref = $link.attr('href').trim();
+
+                // check if missing leading 'http'
+                linkHref && !linkHref.startsWith('http') ? linkHref = 'http:' + linkHref : null
 
                 // increment next link reference
                 i ++;
