@@ -37,7 +37,8 @@ const seleniumStart = (callback) => {
                     baseURL: 'https://selenium-release.storage.googleapis.com/'
                 }
             },
-        }, 
+        javaArgs: ['-Xmx=512M'],
+    }, 
         (err, child) => {
             if (err) {
                 logger.error(err);

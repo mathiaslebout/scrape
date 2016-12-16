@@ -9,12 +9,12 @@ exports.getSwatches = (imgHref, callback) => {
         }
 
         const result = {
-            darkMuted: palette.DarkMuted.getHex(),
-            darkVibrant: palette.DarkVibrant.getHex(),
-            lightMuted: palette.LightMuted.getHex(),
-            lightVibrant: palette.LightVibrant.getHex(),
-            regularMuted: palette.Muted.getHex(),
-            regularVibrant: palette.Vibrant.getHex()
+            darkMuted: palette.DarkMuted ? palette.DarkMuted.getHex() : null,
+            darkVibrant: palette.DarkVibrant ? palette.DarkVibrant.getHex() : null,
+            lightMuted: palette.LightMuted ? palette.LightMuted.getHex() : null,
+            lightVibrant: palette.LightVibrant ? palette.LightVibrant.getHex() : null,
+            regularMuted: palette.Muted ? palette.Muted.getHex() : null,
+            regularVibrant: palette.Vibrant ? palette.Vibrant.getHex() : null
         }
 
         // let dominantSwatch = {

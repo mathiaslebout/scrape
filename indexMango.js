@@ -4,7 +4,7 @@ const jsdom = require("jsdom").jsdom;
 const doc = jsdom();
 const window = doc.defaultView;
 const $ = require("jquery")(window);
-const vibrant = require('./vibrant')
+const prominentColors = require('./prominentColors')
 
 const seleniumWrapper = require('./seleniumWrapper')
 const database = require('./database')
@@ -184,21 +184,25 @@ exports.run = (baseUrl, {maxProducts, callback} = {} ) => {
                             }
                         });
 
-                        vibrant.getSwatches(imgHref, (res, palette) => {
-                            if (!res) {
+                        // get the filtered prominent colors for the given image
+                        // prominent colors are the most vibrant colors filtered by image border dominant colors
+                        prominentColors.getProminentColors(imgHref, (err, palette) => {
+                            if (err) {
+                                logger.error(err)
+
+                            } else {
                                 database.update('Mango', {
                                     id,
-                                    category,
                                     description,
-                                    price,
+                                    category,
                                     href: productHref,
+                                    price,
                                     sizes,
                                     colors,
                                     imgHref,
                                     palette
                                 });
-                                
-                            } else logger.error(res)
+                            }
                         })
                     })
                     .catch((err) => {

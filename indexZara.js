@@ -5,12 +5,11 @@ tracking = {}
 window = document.defaultView
 navigator = window.navigator 
 const $ = require("jquery")(window);
-const vibrant = require('./vibrant')
 // const tr = require('tracking')
-const tinycolor = require('tinycolor2')
 
-const seleniumWrapper = require('./seleniumWrapper');
-const database = require('./database');
+const seleniumWrapper = require('./seleniumWrapper')
+const database = require('./database')
+const prominentColors = require('./prominentColors')
 
 const webdriverio = require('webdriverio');
 const options = {
@@ -18,6 +17,8 @@ const options = {
         browserName: 'phantomjs'
     }
 };
+
+// const paper = require('paper')
 
 // registerColor = (name, rgbColor) => { 
 //     tracking.ColorTracker.registerColor(name, (r, g, b) => {
@@ -66,7 +67,8 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                         const $card = $(card);
 
                         // get image href
-                        const imgHref = 'http:' + $('.image-wrap ._seoImg img._img-zoom', $card).attr('src').trim();
+                        const $img =  $('.image-wrap ._seoImg img._img-zoom', $card)
+                        const imgHref = 'http:' + $img.attr('src').trim()
 
                         // get sizes
                         let sizes = [];
@@ -83,28 +85,13 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                             colors.push($('._colorName', $card).text().trim());
                         }
 
-                        vibrant.getSwatches(imgHref, (res, palette) => {
-                            if (!res) {
-                                const regularVibrantRgb = tinycolor( palette.regularVibrant ).toRgb()
+                        // get the filtered prominent colors for the given image
+                        // prominent colors are the most vibrant colors filtered by image border dominant colors
+                        prominentColors.getProminentColors(imgHref, (err, palette) => {
+                            if (err) {
+                                logger.error(err)
 
-                                // registerColor(palette.regularVibrant, regularVibrantRgb)
-
-                                // const colors = new tracking.ColorTracker([palette.regularVibrant]);
-                                // colors.on('track', function(event) {
-                                //     if (event.data.length === 0) {
-                                //         // No colors were detected in this frame.
-                                //     } else {
-                                //         event.data.forEach(function(rect) {
-                                //             // rect.x, rect.y, rect.height, rect.width, rect.color
-                                //             // window.plot(rect.x, rect.y, rect.width, rect.height, rect.color);
-                                //         });
-                                //     }
-                                // });
-
-                                // const $img = $(`<img src='${imgHref}' style='width:800px; height:800px;'/>`)
-
-                                // tracking.track($img[0], colors);        
-
+                            } else {
                                 database.update('Zara', {
                                     id,
                                     category,
@@ -116,8 +103,7 @@ exports.run = (baseUrl, {maxProducts, callback} = {}) => {
                                     colors,
                                     palette
                                 })
-
-                            } else logger.error(res)
+                            }
                         })
                     })
                     .catch(function(err) {
