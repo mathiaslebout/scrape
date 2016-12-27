@@ -4,5 +4,5 @@ files:
   - source: /
     destination: /home/ec2-user/scrape
 hooks:
-  BeforeInstall:
+  AfterInstall:
     - location: scripts/install.bash
