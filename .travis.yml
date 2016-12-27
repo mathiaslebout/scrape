@@ -10,4 +10,4 @@ deploy:
     # key: latest/MyApp.zip
     application: ScraperBackend
     deployment_group: ScraperDeploymentGroup
-    region: us-west-2b    
+    region: us-west-2
