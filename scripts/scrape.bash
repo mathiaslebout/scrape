@@ -1,0 +1,1 @@
+/usr/local/bin/node --nolazy --max-old-space-size=8192 /Users/mathiaslebout/scrape/index.js maxProducts=100 stores=./conf/stores.json

@@ -1,6 +1,6 @@
 const logger = require('./logger').logger;
 const mongoose = require('mongoose');
-const connectionUrl = 'mongodb://localhost/scrape';
+const connectionUrl = 'mongodb://scraper.site/scrape';
 
 let db = null;
 let productModel = null;
