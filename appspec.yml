@@ -10,3 +10,4 @@ permissions:
 hooks:
   AfterInstall:
     - location: scripts/install.bash
+      runas: ec2-user
